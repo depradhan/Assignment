@@ -1,0 +1,81 @@
+#Multi Stage Pipeline 
+# Stage 1 - Build Phase - compilation of app code and DB code along with Terraform validate job
+# Stage 2 - Deployment Phase - Deploy the infra code and the DB and App code in Dev Environment
+
+name: $(Rev:r)
+
+pool:
+  vmImage: 'windows-latest'
+# variables:
+#  - name: xyx
+#    value: ""
+
+parameters:
+ - name: rings
+   displayName: rings
+   type: object
+   default:
+      - name: "dev"        
+
+stages:
+- stage: build
+  jobs:
+    - job: Compile
+      displayName: 'Compile App code and DB code'
+      steps:
+
+      - task: NodeTool@0
+        displayName: "Install Node Tool"
+        inputs:
+          versionSource: 'spec'
+          versionSpec: '6.x'
+      - task: Npm@1
+        displayName: 'Install node modules for api code'
+        inputs:
+          command: 'install'
+          workingDir: '$(Build.SourcesDirectory)/api'
+      - task: CmdLine@2
+        displayName: 'compile api code'
+        inputs:
+          script: 'tsc'
+          workingDirectory: '$(Build.SourcesDirectory)/api'
+
+      - task: Npm@1
+        displayName: 'Install node modules for app code'
+        inputs:
+          command: 'install'
+          workingDir: '$(Build.SourcesDirectory)/my-app'
+      - task: CmdLine@2
+        displayName: 'compile api code'
+        inputs:
+          script: 'npm run build'
+          workingDirectory: '$(Build.SourcesDirectory)/my-app'
+
+      - task: VSBuild@1
+        displayName: 'Build DACPAC from SQL Database Project'
+        inputs:
+          solution: '$(solution)'
+          platform: '$(buildPlatform)'
+          configuration: '$(buildConfiguration)'
+
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish SQL Project output as Azure DevOps artifacts'
+        inputs:
+          PathtoPublish: '$(System.DefaultWorkingDirectory)/sql'
+          ArtifactName: 'sql_artifacts'
+          publishLocation: 'Container'
+
+
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish SQL Project output as Azure DevOps artifacts'
+        inputs:
+          PathtoPublish: '$(System.DefaultWorkingDirectory)/sql'
+          ArtifactName: 'sql_artifacts'
+          publishLocation: 'Container'
+
+
+
+# - ${{each ring in parameters.rings}}:
+#       - template: Templates/deployment.yml
+#         parameters:
+#           ringName: ${{ring.name}}
