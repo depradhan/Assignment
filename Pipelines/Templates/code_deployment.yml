@@ -16,9 +16,10 @@ stages:
                   buildType: 'current'
                   downloadType: 'specific'
                   downloadPath: '$(System.ArtifactsDirectory)'
+
             - template: ./terraform_steps.yml
               parameters:
-                ringName: ${{ring.name}}
+                ringName: ${{parameters.ringName}}
                 
             - task: SqlAzureDacpacDeployment@1
               displayName: 'Deploy Azure SQL DB'
