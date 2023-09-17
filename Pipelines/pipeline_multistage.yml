@@ -6,9 +6,6 @@ name: $(Rev:r)
 
 pool:
   vmImage: 'windows-latest'
-# variables:
-#  - name: xyx
-#    value: ""
 
 parameters:
  - name: rings
@@ -23,7 +20,6 @@ stages:
     - job: Compile
       displayName: 'Compile App code and DB code'
       steps:
-
       - task: NodeTool@0
         displayName: "Install Node Tool"
         inputs:
@@ -74,6 +70,7 @@ stages:
           ArtifactName: 'sql_artifacts'
           publishLocation: 'Container'
 
+# for loop to run the terraform steps for different enviroements based on the no of environments mention in ringName Parameters
     - ${{each ring in parameters.rings}}:
       - job: Terraform_Step
         displayName: 'validate Infra code'
@@ -82,6 +79,7 @@ stages:
             parameters:
               ringName: ${{ring.name}}
 
+#Dynamic step to create 'N' no of Deployments stages based on Number of enviroments mentioned in ringName parameters
 - ${{each ring in parameters.rings}}:
       - template: Templates/code_deployment.yml
         parameters:
