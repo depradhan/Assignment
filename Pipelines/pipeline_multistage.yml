@@ -12,7 +12,9 @@ parameters:
    displayName: rings
    type: object
    default:
-      - name: "dev"        
+      - name: "dev" 
+      - name: "qa"
+      - name: "prod"
 
 stages:
 - stage: build
