@@ -74,7 +74,7 @@ stages:
 
 # for loop to run the terraform steps for different enviroements based on the no of environments mention in ringName Parameters
     - ${{each ring in parameters.rings}}:
-      - job: Terraform_Step
+      - job: Terraform_Step_${{ring.name}}
         displayName: 'validate Infra code'
         steps:
           - template: Templates/terraform_steps.yml
