@@ -24,10 +24,10 @@ stages:
             - task: SqlAzureDacpacDeployment@1
               displayName: 'Deploy Azure SQL DB'
               inputs:
-                azureSubscription: '$(subscription-name)'
+                azureSubscription: 'InsightApp'
                 AuthenticationType: 'servicePrincipal'
-                ServerName: '$(logical-sql-server-name).database.windows.net'
-                DatabaseName: '$(sql-database-name)'
+                ServerName: 'DBName.database.windows.net'
+                DatabaseName: 'DBName'
                 deployType: 'DacpacTask'
                 DeploymentAction: 'Publish'
                 DacpacFile: '$(System.ArtifactsDirectory)/sqlproj_artifacts_$(System.JobAttempt)/wwi-dw-ssdt/bin/Release/WideWorldImportersDW.dacpac'
