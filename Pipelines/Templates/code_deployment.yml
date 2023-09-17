@@ -1,0 +1,45 @@
+parameters:
+  - name: ringName
+    type: string
+stages:
+  - stage: ${{parameters.ringName}}
+    jobs:
+      - deployment: ${{parameters.ringName}}
+        environment: ${{parameters.ringName}}
+        strategy:
+         runOnce:
+          deploy:
+           steps:
+            - task: DownloadBuildArtifacts@1
+              displayName: 'Download Artifacts'
+              inputs:
+                  buildType: 'current'
+                  downloadType: 'specific'
+                  downloadPath: '$(System.ArtifactsDirectory)'
+            - template: ./terraform_steps.yml
+              parameters:
+                ringName: ${{ring.name}}
+                
+            - task: SqlAzureDacpacDeployment@1
+              displayName: 'Deploy Azure SQL DB'
+              inputs:
+                azureSubscription: '$(subscription-name)'
+                AuthenticationType: 'servicePrincipal'
+                ServerName: '$(logical-sql-server-name).database.windows.net'
+                DatabaseName: '$(sql-database-name)'
+                deployType: 'DacpacTask'
+                DeploymentAction: 'Publish'
+                DacpacFile: '$(System.ArtifactsDirectory)/sqlproj_artifacts_$(System.JobAttempt)/wwi-dw-ssdt/bin/Release/WideWorldImportersDW.dacpac'
+                AdditionalArguments: '/v:ETLUserPassword="$(sql-password)" /v:AppUserPassword="$(sql-password)"'
+                IpDetectionMethod: 'AutoDetect'
+                DeleteFirewallRule: false
+                
+            - task: AzureStaticWebApp@0
+              displayName: 'Deploy static web app'
+              inputs:
+                app_location: './my-app'
+                app_build_command: 'node_modules/.bin/vue-cli-service build'
+                output_location: 'dist'
+                api_location: './api'
+                api_build_command: 'node_modules/.bin/tsc'
+                  

@@ -45,6 +45,7 @@ stages:
         inputs:
           command: 'install'
           workingDir: '$(Build.SourcesDirectory)/my-app'
+
       - task: CmdLine@2
         displayName: 'compile api code'
         inputs:
@@ -73,9 +74,15 @@ stages:
           ArtifactName: 'sql_artifacts'
           publishLocation: 'Container'
 
+    - ${{each ring in parameters.rings}}:
+      - job: Terraform_Step
+        displayName: 'validate Infra code'
+        steps:
+          - template: Templates/terraform_steps.yml
+            parameters:
+              ringName: ${{ring.name}}
 
-
-# - ${{each ring in parameters.rings}}:
-#       - template: Templates/deployment.yml
-#         parameters:
-#           ringName: ${{ring.name}}
+- ${{each ring in parameters.rings}}:
+      - template: Templates/code_deployment.yml
+        parameters:
+          ringName: ${{ring.name}}
